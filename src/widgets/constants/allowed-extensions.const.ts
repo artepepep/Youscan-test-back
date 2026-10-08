@@ -1,1 +1,1 @@
-export const ALLOWED_EXTENSIONS = new Set(['.csv', '.xlsx', '.xls']);
+export const ALLOWED_EXTENSIONS = new Set(['.csv', '.xlsx']);

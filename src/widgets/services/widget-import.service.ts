@@ -7,6 +7,7 @@ import { toNumber } from '../../shared/helpers/to-number';
 import { RawRow } from '../../shared/types/raw-row.type';
 import { ImportableWidgetType } from '../types/importable-widget.type';
 import { excelDateToIso } from '../../shared/helpers/excel-date-to-iso';
+import { hasXlsxSignature } from '../../shared/helpers/has-xlsx-signature';
 
 @Injectable()
 export class WidgetImportService {
@@ -29,26 +30,22 @@ export class WidgetImportService {
           skip_empty_lines: true,
           trim: true,
         });
-      } else if (extension === 'xlsx' || extension === 'xls') {
-        const workbook = XLSX.read(buffer, { type: 'buffer' });
-        const selectedSheetName = this.selectSheet(
-          workbook.SheetNames,
-          type,
-          sheetName,
-        );
-
-        if (!selectedSheetName) {
-          throw new Error('The workbook contains no sheets');
+      } else if (extension === 'xlsx') {
+        if (!hasXlsxSignature(buffer)) {
+          throw new BadRequestException(
+            'The uploaded file is not a valid XLSX file',
+          );
         }
 
-        rows = XLSX.utils.sheet_to_json<RawRow>(
-          workbook.Sheets[selectedSheetName],
-          { defval: '' },
-        );
+        const workbook = XLSX.read(buffer, {
+          type: 'buffer',
+          cellFormula: false,
+          cellHTML: false,
+        });
+
+        rows = this.parseWorkbookRows(workbook, type, sheetName);
       } else {
-        throw new BadRequestException(
-          'Only CSV, XLSX or XLS files are supported',
-        );
+        throw new BadRequestException('Only CSV or XLSX files are supported');
       }
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -190,5 +187,28 @@ export class WidgetImportService {
     return Array.from(rowsByDate.values()).sort((left, right) =>
       left.label.localeCompare(right.label),
     );
+  }
+
+  private parseWorkbookRows(
+    workbook: XLSX.WorkBook,
+    type: ImportableWidgetType,
+    sheetName?: string,
+  ) {
+    const selectedSheetName = this.selectSheet(
+      workbook.SheetNames,
+      type,
+      sheetName,
+    );
+
+    if (!selectedSheetName) {
+      throw new Error('The workbook contains no sheets');
+    }
+
+    const rows = XLSX.utils.sheet_to_json<RawRow>(
+      workbook.Sheets[selectedSheetName],
+      { defval: '' },
+    );
+
+    return rows;
   }
 }

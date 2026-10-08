@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import * as XLSX from 'xlsx';
-import { WidgetImportService } from './services/widget-import.service';
+import { WidgetImportService } from './widget-import.service';
 
 describe('WidgetImportService', () => {
   const service = new WidgetImportService();
@@ -95,5 +95,15 @@ describe('WidgetImportService', () => {
     expect(() =>
       service.parse(Buffer.from('name\nOrganic'), 'invalid.csv', 'bar'),
     ).toThrow(BadRequestException);
+  });
+
+  it('rejects HTML renamed to XLSX', () => {
+    expect(() =>
+      service.parse(
+        Buffer.from('<table><tr><td>42</td></tr></table>'),
+        'fake.xlsx',
+        'bar',
+      ),
+    ).toThrow('The uploaded file is not a valid XLSX file');
   });
 });

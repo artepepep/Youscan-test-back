@@ -38,7 +38,7 @@ async function seed(): Promise<void> {
     }
 
     const workbookName = filenames.find((name) =>
-      ['.xlsx', '.xls'].includes(extname(name).toLowerCase()),
+      ['.xlsx'].includes(extname(name).toLowerCase()),
     );
     const csvName = filenames.find(
       (name) => extname(name).toLowerCase() === '.csv',

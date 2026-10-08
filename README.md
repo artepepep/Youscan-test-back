@@ -63,7 +63,7 @@ curl -X POST http://localhost:3000/api/widgets/import \
   -F 'file=@data/traffic.csv'
 ```
 
-CSV, XLSX and XLS files must contain a header row and at least one numeric column.
+CSV and XLSX files must contain a header row and at least one numeric column.
 The first column becomes the category label. Line, bar, and stacked-bar imports
 retain all following numeric series; pie imports use the first numeric series.
 For workbooks with multiple sheets, an optional `sheet` form field selects a
