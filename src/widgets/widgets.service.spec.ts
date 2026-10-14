@@ -1,4 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { createRandomWidgetData } from '../shared/helpers/create-random-widget-data';
 import { WidgetImportService } from './services/widget-import.service';
 import { WidgetsRepository } from './widgets.repository';
 import { WidgetsService } from './widgets.service';
@@ -36,6 +37,17 @@ describe('WidgetsService', () => {
         data: { rows: expect.any(Array) as unknown[] },
       }),
     );
+
+    const lineData = createRandomWidgetData('line');
+
+    if (!('rows' in lineData)) {
+      throw new Error('Line widget data must contain chart rows');
+    }
+
+    expect(lineData.rows).toHaveLength(6);
+    expect(
+      lineData.rows.every((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.label)),
+    ).toBe(true);
   });
 
   it('does not accept text content for chart widgets', async () => {
